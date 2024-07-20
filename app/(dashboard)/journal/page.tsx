@@ -22,12 +22,10 @@ const getEntries = async () => {
     },
   })
 
-  // analyze(
-  //   `I'm hoing to give you an journal app entry, I want you to analyze for few things. I need the mood, a summary, what the subject is, and a color representing the mood. You need to respond back with formatted JSON like so: {"mood": "", "summary": "", "subject": "", "color": "", negative: ""}.
-
-  //   entry:
-  //   Today I was a really good day. I finally was able to grab that pair of shoes I have been dying to get.
-  //   `
+  // console.log(
+  //   await analyze(
+  //     'Today was a ehh, ok day I guess. I found a new coddee shop that was cool but then I got a flat tire. :)'
+  //   )
   // )
 
   return entries
