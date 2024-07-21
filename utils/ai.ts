@@ -2,6 +2,10 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { ChatVertexAI } from "@langchain/google-vertexai";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import * as z from "zod";
+import { Document } from "langchain/document";
+import { loadQARefineChain } from "langchain/chains";
+import { GoogleVertexAIEmbeddings } from "@langchain/community/embeddings/googlevertexai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 const parser = StructuredOutputParser.fromZodSchema(
   z.object({
@@ -59,4 +63,37 @@ export const analyze = async (content: string) => {
   } catch (error) {
     console.error(error);
   }
+};
+
+export const qa = async (question, entries) => {
+  const docs = entries.map((entry) => {
+    return new Document({
+      pageContent: entry.content,
+      metadata: {
+        source: entry.id,
+        date: entry.createdAt,
+      },
+    });
+  });
+
+  const embeddings = new GoogleVertexAIEmbeddings();
+
+  const model = new ChatVertexAI({
+    model: "gemini-1.0-pro",
+    apiKey: process.env.GOOGLE_VERTEX_AI_WEB_CREDENTIALS,
+    temperature: 0,
+  });
+
+  const chain = loadQARefineChain(model);
+
+  const store = await MemoryVectorStore.fromDocuments(docs, embeddings);
+
+  const relevantDocs = await store.similaritySearch(question);
+
+  const res = await chain.invoke({
+    input_documents: relevantDocs,
+    question,
+  });
+
+  return res.output_text;
 };
